@@ -22,15 +22,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ▼▼▼ এই অংশটুকু ঠিক করা হয়েছে ▼▼▼
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: 'platform-tools'   # 'tools' প্যাকেজ আর ডিফল্টে নেই
-      # ▲▲▲ এই অংশটুকু ঠিক করা হয়েছে ▲▲▲
+      # ডিবাগ: রিপোতে কী আছে তা দেখুন
+      - name: Debug - List files
+        run: |
+          echo "=== Root ==="
+          ls -la
+          echo "=== gradlew খোঁজা ==="
+          find . -name "gradlew" -type f 2>/dev/null || echo "gradlew পাওয়া যায়নি"
+          echo "=== build.gradle খোঁজা ==="
+          find . -name "build.gradle*" -type f 2>/dev/null || echo "build.gradle পাওয়া যায়নি"
 
+      # gradlew থাকলে executable করুন (না থাকলে স্কিপ)
       - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+          else
+            echo "gradlew নেই, স্কিপ করা হচ্ছে"
+          fi
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
@@ -42,17 +51,31 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Setup Gradle (fallback)
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          if [ -f ./gradlew ]; then
+            ./gradlew assembleDebug --stacktrace
+          else
+            gradle assembleDebug --stacktrace
+          fi
 
       - name: Build Release APK
-        run: ./gradlew assembleRelease --stacktrace
+        run: |
+          if [ -f ./gradlew ]; then
+            ./gradlew assembleRelease --stacktrace
+          else
+            gradle assembleRelease --stacktrace
+          fi
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            **/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
           retention-days: 30
 
@@ -60,6 +83,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: |
+            **/build/outputs/apk/release/*.apk
           if-no-files-found: warn
           retention-days: 30
