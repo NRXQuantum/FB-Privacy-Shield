@@ -3,8 +3,6 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -14,112 +12,61 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      # ═══════════════════════════════════════════
-      # 1. Repository checkout
-      # ═══════════════════════════════════════════
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # ═══════════════════════════════════════════
-      # 2. JDK সেটআপ (Android Gradle Plugin 8+ এর জন্য 17)
-      # ═══════════════════════════════════════════
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # ═══════════════════════════════════════════
-      # 3. Android SDK সেটআপ
-      # ═══════════════════════════════════════════
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          packages: 'platform-tools'
 
-      # ═══════════════════════════════════════════
-      # 4. Debug — repo-তে কী আছে দেখুন
-      # ═══════════════════════════════════════════
       - name: Debug - List repository files
         run: |
-          echo "=== Root directory ==="
+          echo "=== Root ==="
           ls -la
           echo ""
-          echo "=== gradlew খোঁজা ==="
-          find . -name "gradlew" -type f 2>/dev/null || echo "gradlew পাওয়া যায়নি"
+          echo "=== gradlew ==="
+          find . -name "gradlew" -type f 2>/dev/null || echo "NOT FOUND"
           echo ""
-          echo "=== build.gradle খোঁজা ==="
-          find . -name "build.gradle*" -type f 2>/dev/null || echo "build.gradle পাওয়া যায়নি"
+          echo "=== build.gradle files ==="
+          find . -name "build.gradle*" -type f 2>/dev/null || echo "NOT FOUND"
           echo ""
-          echo "=== AndroidManifest.xml খোঁজা ==="
-          find . -name "AndroidManifest.xml" -type f 2>/dev/null || echo "AndroidManifest.xml পাওয়া যায়নি"
+          echo "=== settings.gradle ==="
+          find . -name "settings.gradle*" -type f 2>/dev/null || echo "NOT FOUND"
+          echo ""
+          echo "=== app folder ==="
+          ls -la app/ 2>/dev/null || echo "app/ ফোল্ডার নেই"
 
-      # ═══════════════════════════════════════════
-      # 5. local.properties তৈরি (SDK path)
-      # ═══════════════════════════════════════════
       - name: Create local.properties
-        run: |
-          echo "sdk.dir=${ANDROID_SDK_ROOT}" > local.properties
-          echo "Created local.properties:"
-          cat local.properties
+        run: echo "sdk.dir=${ANDROID_SDK_ROOT}" > local.properties
 
-      # ═══════════════════════════════════════════
-      # 6. gradlew executable করুন (থাকলে)
-      # ═══════════════════════════════════════════
       - name: Grant execute permission for gradlew
         run: |
           if [ -f ./gradlew ]; then
             chmod +x ./gradlew
-            echo "gradlew executable করা হয়েছে"
-          else
-            echo "gradlew নেই — সিস্টেম Gradle ব্যবহার হবে"
           fi
 
-      # ═══════════════════════════════════════════
-      # 7. Gradle cache (build দ্রুত করার জন্য)
-      # ═══════════════════════════════════════════
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      # ═══════════════════════════════════════════
-      # 8. Gradle সেটআপ (fallback system gradle)
-      # ═══════════════════════════════════════════
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      # ═══════════════════════════════════════════
-      # 9. Debug APK Build
-      # ═══════════════════════════════════════════
-      - name: Build Debug APK
+      # Config cache বন্ধ করে build — আসল এরর স্পষ্ট দেখাবে
+      - name: Build Debug APK (NO config cache)
         run: |
           if [ -f ./gradlew ]; then
-            ./gradlew assembleDebug --stacktrace --info
+            ./gradlew assembleDebug \
+              --stacktrace \
+              --no-configuration-cache \
+              --no-daemon \
+              --console=plain
           else
-            gradle assembleDebug --stacktrace --info
+            gradle assembleDebug \
+              --stacktrace \
+              --no-configuration-cache \
+              --no-daemon \
+              --console=plain
           fi
 
-      # ═══════════════════════════════════════════
-      # 10. Release APK Build (unsigned)
-      # ═══════════════════════════════════════════
-      - name: Build Release APK
-        if: success()
-        run: |
-          if [ -f ./gradlew ]; then
-            ./gradlew assembleRelease --stacktrace
-          else
-            gradle assembleRelease --stacktrace
-          fi
-
-      # ═══════════════════════════════════════════
-      # 11. Debug APK Upload
-      # ═══════════════════════════════════════════
       - name: Upload Debug APK
         if: always()
         uses: actions/upload-artifact@v4
@@ -127,20 +74,4 @@ jobs:
           name: app-debug-apk
           path: |
             **/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
-          retention-days: 30
-
-      # ═══════════════════════════════════════════
-      # 12. Release APK Upload
-      # ═══════════════════════════════════════════
-      - name: Upload Release APK
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-apk
-          path: |
-            **/build/outputs/apk/release/*.apk
-            app/build/outputs/apk/release/*.apk
-          if-no-files-found: warn
-          retention-days: 30
