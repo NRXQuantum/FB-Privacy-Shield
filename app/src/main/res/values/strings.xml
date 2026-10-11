@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">FB Privacy Shield</string>
+    <string name="qs_tile_label">FB Shield</string>
+    <string name="notif_channel_name">FB Privacy Shield Service</string>
+    <string name="notif_channel_desc">Active VPN protection status and tracker blocking stats</string>
+    <string name="status_protected">Protected</string>
+    <string name="status_not_protected">Not Protected</string>
+    <string name="status_active_desc">Intercepting Facebook traffic and dropping tracking payloads</string>
+    <string name="status_inactive_desc">Tap the shield or toggle switch to enable protection</string>
+    <string name="packets_blocked">Packets Blocked</string>
+    <string name="data_saved">Data Saved</string>
+    <string name="uptime">Uptime</string>
+    <string name="how_it_works">How It Works</string>
+    <string name="settings">Settings</string>
+    <string name="info">Privacy Info</string>
+    <string name="auto_start_boot">Auto-start on boot</string>
+    <string name="auto_start_boot_desc">Automatically activate shield after device reboots</string>
+    <string name="show_notifications">Persistent notification</string>
+    <string name="show_notifications_desc">Show real-time blocking count in status bar</string>
+    <string name="custom_blocklist">Custom Blocklist</string>
+    <string name="custom_blocklist_desc">Add or remove custom tracker endpoint keywords</string>
+    <string name="reset_stats">Reset Statistics</string>
+    <string name="reset_stats_desc">Clear blocked packet counts and saved bandwidth</string>
+    <string name="reset_stats_confirm">Are you sure you want to reset all tracking statistics to zero?</string>
+    <string name="fb_not_installed_title">Facebook App Not Detected</string>
+    <string name="fb_not_installed_desc">com.facebook.katana is not installed on this device. The shield targets Facebook traffic specifically, but you can still run the shield in test/simulation mode or install Facebook.</string>
+    <string name="vpn_permission_required">VPN Permission Required</string>
+    <string name="vpn_permission_desc">Android requires VPN permission so FB Privacy Shield can create a local loopback tunnel to inspect and drop Facebook tracking packets.</string>
+</resources>

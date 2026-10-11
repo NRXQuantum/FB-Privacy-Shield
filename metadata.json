@@ -1,0 +1,6 @@
+{
+  "name": "FB Privacy Shield",
+  "description": "A per-app VPN that blocks Facebook tracking endpoints and localhost ports without root or APK modification.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
