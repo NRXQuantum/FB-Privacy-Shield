@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:   # ম্যানুয়ালি রান করার জন্য
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,26 +13,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Repository চেকআউট
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. JDK 17 সেটআপ (Kotlin/AGP 8+ এর জন্য)
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3. Android SDK সেটআপ
+      # ▼▼▼ এই অংশটুকু ঠিক করা হয়েছে ▼▼▼
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'   # 'tools' প্যাকেজ আর ডিফল্টে নেই
+      # ▲▲▲ এই অংশটুকু ঠিক করা হয়েছে ▲▲▲
 
-      # 4. gradlew execute permission
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      # 5. Gradle cache (বিল্ড fast করার জন্য)
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -43,15 +42,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # 6. Debug APK build
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-      # 7. Release APK build (unsigned)
       - name: Build Release APK
         run: ./gradlew assembleRelease --stacktrace
 
-      # 8. Debug APK upload
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
@@ -60,7 +56,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-      # 9. Release APK upload
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
